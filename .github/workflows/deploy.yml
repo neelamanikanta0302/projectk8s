@@ -1,4 +1,4 @@
-name : k8s deployments
+name: k8s deployments
 
 on: [push]
 
@@ -31,4 +31,28 @@ jobs:
           push: true
           file: .docker/Dockerfile
           tags: prasannakumar0302/nginx:${{steps.tag.outputs.tag}}
+          
+      - name: creating pod file
+        shell: bash
+        run: |
+          echo 'apiVersion: v1
+          kind: Pod
+          metadata:
+            name: my-nginx-pod
+            labels:
+              app: web-app
+              type: front-end
+          spec:
+            containers:
+              - name: nginx-container
+                image: prasannakumar0302/nginx:${{steps.tag.outputs.tag}}' > pod.yml
+          cat pod.yml
+          cp -r pod.yml /home/ec2-user/pod
+
+      - name: applying pod definition file
+        run: |
+          sudo su -
+          kubectl delete pod my-nginx-pod
+          kubectl create -f /home/ec2-user/pod/pod.yml
+
 
